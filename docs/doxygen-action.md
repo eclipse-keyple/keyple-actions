@@ -7,9 +7,9 @@ navigation between versions, and proper organization of documentation artifacts.
 
 - **Automatic Version Detection**: Extracts version information from `CMakeLists.txt`
 - **Version Management**:
-    - Supports Java reference versions (`X.Y.Z`)
-    - Handles C++-specific fixes (`X.Y.Z.T`)
-    - Manages development versions (`X.Y.Z[.T]-SNAPSHOT`)
+    - Supports release versions (`X.Y.Z`)
+    - Handles release candidates (`X.Y.Z-rcN`)
+    - Manages development versions (`X.Y.Z-SNAPSHOT`)
 - **Documentation Organization**:
     - Creates versioned documentation directories
     - Maintains "latest-stable" symlink
@@ -19,6 +19,8 @@ navigation between versions, and proper organization of documentation artifacts.
     - Generates appropriate `robots.txt`
     - Maintains clean URLs structure
     - Proper indexing of stable versions
+
+#### Usage
 
 ```yaml
 - uses: eclipse-keyple/actions/doxygen@v1
@@ -37,31 +39,39 @@ navigation between versions, and proper organization of documentation artifacts.
 ```cmake
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 
+# Optional: Uncomment and modify when preparing a release candidate
+#SET(RC_VERSION "2")
+
 PROJECT(KeypleExample
-        VERSION 2.1.1.1  # X.Y.Z[.T] format
+        VERSION 2.1.1
         C CXX)
+
+# Version handling
+if(DEFINED RC_VERSION)
+    SET(PACKAGE_VERSION "${PROJECT_VERSION}-rc${RC_VERSION}")
+else()
+    SET(PACKAGE_VERSION "${PROJECT_VERSION}")
+endif()
 
 # Package information
 SET(PACKAGE_NAME "keyple-example")
-SET(PACKAGE_VERSION ${CMAKE_PROJECT_VERSION})
 SET(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 ```
 
 The version is determined as follows:
-- Version is taken directly from `PROJECT(VERSION X.Y.Z[.T])`
-    - X.Y.Z matches the Java reference version
-    - Optional T number indicates C++-specific fixes
-- Without explicit version parameter, it becomes `X.Y.Z[.T]-SNAPSHOT` for development builds
+- Base version is taken from the `PROJECT(VERSION X.Y.Z)`
+- If `RC_VERSION` is defined, it becomes `X.Y.Z-rcN`
+- If neither is present, it becomes `X.Y.Z-SNAPSHOT` for development builds
 
 #### Documentation Structure
 
 The action generates the following structure in your GitHub Pages:
 ```
 repository-gh-pages/
-├── 2.1.1.1-SNAPSHOT/    # Development version with C++ fix
+├── 2.1.1-SNAPSHOT/      # Development version
+├── 2.1.0-rc2/           # Release candidate
 ├── latest-stable/       # Symlink to latest stable version
-├── 2.1.1.1/             # Stable version with C++ fix
-├── 2.1.1/               # Java reference version
+├── 2.1.0/               # Stable version
 ├── list_versions.md     # Version listing
 └── robots.txt           # Search engine directives
 ```
