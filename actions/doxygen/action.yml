@@ -1,4 +1,4 @@
-name: "C++ API Documentation - Deprecated: use keyple-actions/actions/doxygen"
+name: 'C++ API Documentation'
 description: 'Generate and publish Doxygen documentation'
 branding:
   icon: 'book-open'

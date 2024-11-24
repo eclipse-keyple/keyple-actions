@@ -55,15 +55,14 @@ The version is determined as follows:
 
 #### Documentation Structure
 
-The action generates the following structure in your GitHub Pages:
+The action generates the following structure in the doc branch:
 ```
-repository-gh-pages/
+repository-doc/
 ├── 2.1.1.1-SNAPSHOT/    # Development version with C++ fix
 ├── latest-stable/       # Symlink to latest stable version
-├── 2.1.1.1/             # Stable version with C++ fix
-├── 2.1.1/               # Java reference version
-├── list_versions.md     # Version listing
-└── robots.txt           # Search engine directives
+├── 2.1.1.1/            # Stable version with C++ fix
+├── 2.1.1/              # Java reference version
+└── list_versions.md    # Version listing
 ```
 
 ### Workflow Examples

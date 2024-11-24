@@ -1,0 +1,122 @@
+name: Reusable - Publish Release to Maven Central
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        default: '17'
+        type: string
+      java-distribution:
+        default: 'temurin'
+        type: string
+      namespace:
+        default: 'org.eclipse.keyple'
+        type: string
+    secrets:
+      CENTRAL_SONATYPE_TOKEN_USERNAME:
+        required: true
+      CENTRAL_SONATYPE_TOKEN_PASSWORD:
+        required: true
+      GPG_PRIVATE_KEY:
+        required: true
+      GPG_PASSPHRASE:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      SSH_PASSPHRASE:
+        required: true
+      ORG_GITHUB_BOT_TOKEN:
+        required: true
+
+jobs:
+  reusable-publish-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Extract project name and version
+        id: metadata
+        run: |
+          PROJECT_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          PROJECT_VERSION=$(grep "^version" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          echo "project-name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+          echo "project-version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check version
+        run: |
+          EXPECTED_PROJECT_VERSION="${{ github.event.release.tag_name }}-SNAPSHOT"
+          ACTUAL_PROJECT_VERSION="${{ steps.metadata.outputs.project-version }}"
+
+          echo "Expected project version: $EXPECTED_PROJECT_VERSION"
+          echo "Actual project version from gradle.properties: $ACTUAL_PROJECT_VERSION"
+
+          if [ "$EXPECTED_PROJECT_VERSION" != "$ACTUAL_PROJECT_VERSION" ]; then
+            echo "::error::Mismatch between release tag and project version"
+            exit 1
+          fi
+
+      - name: Retrieve fingerprint of the signing subkey
+        id: fingerprint
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
+          gpg --batch --import private.key
+          fingerprint=$(gpg --list-keys --with-subkey-fingerprint | awk '/^sub/ {getline; print $1}')
+          echo "fingerprint=$fingerprint" >> $GITHUB_OUTPUT
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          fingerprint: ${{ steps.fingerprint.outputs.fingerprint }}
+
+      - name: Build and publish release
+        env:
+          ORG_GRADLE_PROJECT_sonatypeURL: https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonarToken: ${{ secrets.SONAR_TOKEN }}
+          ORG_GRADLE_PROJECT_releaseTag: ${{ github.event.release.tag_name }}
+        run: |
+          echo "Building and publishing release package..."
+          ./gradlew build publish --info --stacktrace
+
+      - name: Trigger automatic upload to Maven Central
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer $(echo -n '${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}' | base64)" \
+            -H "Content-Type: application/json" \
+            https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${{ inputs.namespace }}?publishing_type=automatic
+
+      - name: Upload artifacts to Eclipse server
+        uses: eclipse-keyple/keyple-actions/actions/deploy-to-eclipse@deploy-to-eclipse-v1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          ssh-username: ${{ secrets.SSH_USERNAME }}
+          is-release: true
+
+      - name: Update documentation
+        uses: eclipse-keyple/keyple-actions/actions/update-documentation@update-documentation-v1
+        with:
+          project-name: ${{ steps.metadata.outputs.project-name }}
+          project-version: ${{ github.event.release.tag_name }}
+          github-bot-token: ${{ secrets.ORG_GITHUB_BOT_TOKEN }}
+
+      - name: Publish Code Quality to sonarcloud.io
+        env:
+          ORG_GRADLE_PROJECT_sonarToken: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "Publishing code quality to sonarcloud.io..."
+          ./gradlew sonarqube --info --stacktrace

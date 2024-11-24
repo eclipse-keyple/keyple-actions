@@ -1,0 +1,80 @@
+name: Reusable - Publish Snapshot to Maven Central
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        required: false
+        default: '17'
+        type: string
+      java-distribution:
+        required: false
+        default: 'temurin'
+        type: string
+    secrets:
+      CENTRAL_SONATYPE_TOKEN_USERNAME:
+        required: true
+      CENTRAL_SONATYPE_TOKEN_PASSWORD:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      SSH_PASSPHRASE:
+        required: true
+      ORG_GITHUB_BOT_TOKEN:
+        required: true
+
+jobs:
+  reusable-publish-snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ inputs.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.java-distribution }}
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Extract project name and version
+        id: metadata
+        run: |
+          PROJECT_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+          PROJECT_VERSION=$(grep "^version" gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          echo "project-name=$PROJECT_NAME" >> $GITHUB_OUTPUT
+          echo "project-version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build and publish snapshot to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_sonatypeURL: https://central.sonatype.com/repository/maven-snapshots/
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
+        run: |
+          echo "Building and publishing snapshot package..."
+          ./gradlew build publish --info --stacktrace
+
+      - name: Upload artifacts to Eclipse server
+        uses: eclipse-keyple/keyple-actions/actions/deploy-to-eclipse@deploy-to-eclipse-v1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          ssh-username: ${{ secrets.SSH_USERNAME }}
+          is-release: false
+
+      - name: Update documentation
+        uses: eclipse-keyple/keyple-actions/actions/update-documentation@update-documentation-v1
+        with:
+          project-name: ${{ steps.metadata.outputs.project-name }}
+          project-version: ${{ steps.metadata.outputs.project-version }}
+          github-bot-token: ${{ secrets.ORG_GITHUB_BOT_TOKEN }}
+
+      - name: Publish Code Quality to sonarcloud.io
+        env:
+          ORG_GRADLE_PROJECT_sonarToken: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          echo "Publishing code quality to sonarcloud.io..."
+          ./gradlew sonarqube --info --stacktrace
