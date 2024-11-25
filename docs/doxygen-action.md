@@ -60,10 +60,10 @@ The action generates the following structure in your GitHub Pages:
 repository-gh-pages/
 ├── 2.1.1.1-SNAPSHOT/    # Development version with C++ fix
 ├── latest-stable/       # Symlink to latest stable version
-├── 2.1.1.1/            # Stable version with C++ fix
-├── 2.1.1/              # Java reference version
+├── 2.1.1.1/             # Stable version with C++ fix
+├── 2.1.1/               # Java reference version
 ├── list_versions.md     # Version listing
-└── robots.txt          # Search engine directives
+└── robots.txt           # Search engine directives
 ```
 
 ### Workflow Examples
