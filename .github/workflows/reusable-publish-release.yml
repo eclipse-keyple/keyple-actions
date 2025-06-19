@@ -21,6 +21,8 @@ on:
         required: true
       GPG_PASSPHRASE:
         required: true
+      GPG_SUBKEY_ID:
+        required: true
       SSH_PRIVATE_KEY:
         required: true
       SSH_PASSPHRASE:
