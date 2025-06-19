@@ -50,6 +50,16 @@ jobs:
           echo "project-name=$PROJECT_NAME" >> $GITHUB_OUTPUT
           echo "project-version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
 
+      - name: Check if this version is already released
+        run: |
+          PROJECT_VERSION=${{ steps.metadata.outputs.project-version }}
+          RELEASE_VERSION=${PROJECT_VERSION%-SNAPSHOT}
+          
+          if git tag -l | grep -q "^${RELEASE_VERSION}$"; then
+            echo "Error: Tag '$RELEASE_VERSION' already exists. Please update the version in gradle.properties."
+            exit 1
+          fi
+
       - name: Build and publish snapshot to Maven Central
         env:
           ORG_GRADLE_PROJECT_sonatypeURL: https://central.sonatype.com/repository/maven-snapshots/
