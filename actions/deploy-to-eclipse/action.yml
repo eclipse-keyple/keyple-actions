@@ -54,13 +54,12 @@ runs:
         echo "$SSH_PRIVATE_KEY" > id_rsa
         chmod 600 id_rsa
         
-        expect << EOF
+        expect -c "
         spawn ssh-add id_rsa
-        expect "Enter passphrase"
-        send "$SSH_PASSPHRASE\r"
+        expect \"Enter passphrase\"
+        send \"$SSH_PASSPHRASE\r\"
         expect eof
-        EOF
-        
+        "        
         echo "Key added to agent:"
         ssh-add -l
 
