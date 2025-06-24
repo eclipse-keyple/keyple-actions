@@ -46,32 +46,96 @@ runs:
         set -e # Stop the script at the first error
         
         echo "--- Installing prerequisites ---"
-        sudo apt-get update && sudo apt-get install -y expect openssh-client
-
+        sudo apt-get update -qq && sudo apt-get install -y expect openssh-client
+        
+        # Verify expect is available
+        if ! command -v expect &> /dev/null; then
+          echo "Error: Failed to install expect"
+          exit 1
+        fi
+        
+        echo "✅ Prerequisites installed: expect $(which expect)"
+        
         echo "--- Starting SSH agent and adding key ---"
         eval "$(ssh-agent -s)"
-
-        echo "$SSH_PRIVATE_KEY" > id_rsa
-        chmod 600 id_rsa
         
-        expect -c "
-        spawn ssh-add id_rsa
-        expect \"Enter passphrase\"
-        send \"$SSH_PASSPHRASE\r\"
-        expect eof
-        "        
+        # Create a temporary file for the private key
+        TEMP_KEY=$(mktemp)
+        echo "$SSH_PRIVATE_KEY" > "$TEMP_KEY"
+        chmod 600 "$TEMP_KEY"
+        
+        # Create a temporary expect script to handle passphrase properly
+        EXPECT_SCRIPT=$(mktemp)
+        cat > "$EXPECT_SCRIPT" << 'EXPECT_EOF'
+        #!/usr/bin/expect -f
+        set timeout 30
+        set key_file [lindex $argv 0]
+        set passphrase [lindex $argv 1]
+        
+        spawn ssh-add $key_file
+        expect {
+            "Enter passphrase*" {
+                send "$passphrase\r"
+                expect eof
+            }
+            "Bad passphrase*" {
+                puts "Error: Bad passphrase"
+                exit 1
+            }
+            timeout {
+                puts "Error: Timeout waiting for passphrase prompt"
+                exit 1
+            }
+            eof {
+                # Key might not have a passphrase
+            }
+        }
+        EXPECT_EOF
+        
+        chmod +x "$EXPECT_SCRIPT"
+        
+        # Add the key using expect script
+        if ! "$EXPECT_SCRIPT" "$TEMP_KEY" "$SSH_PASSPHRASE"; then
+          echo "Error: Failed to add SSH key"
+          rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
+          exit 1
+        fi
+        
         echo "Key added to agent:"
         ssh-add -l
-
+        
         echo "--- Adding server to known hosts ---"
         mkdir -p ~/.ssh
-        ssh-keyscan projects-storage.eclipse.org >> ~/.ssh/known_hosts
-
+        ssh-keyscan -H projects-storage.eclipse.org >> ~/.ssh/known_hosts
+        
+        echo "--- Testing SSH connection ---"
+        if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "$SSH_USERNAME@projects-storage.eclipse.org" "echo 'SSH connection successful'"; then
+          echo "Error: SSH connection failed"
+          rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
+          exit 1
+        fi
+        
         echo "--- Uploading to: $VERSION_TYPE ---"
-        # Remote directory creation
-        ssh $SSH_USERNAME@projects-storage.eclipse.org "rm -rf /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE && mkdir -p /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE"
+        # Remote directory creation with error handling
+        if ! ssh "$SSH_USERNAME@projects-storage.eclipse.org" "rm -rf /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE && mkdir -p /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE"; then
+          echo "Error: Failed to create remote directory"
+          rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
+          exit 1
+        fi
         
-        # Sending files
-        scp -r repository/* $SSH_USERNAME@projects-storage.eclipse.org:/home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE
+        # Sending files with progress and error handling
+        if ! scp -r -o ConnectTimeout=30 repository/* "$SSH_USERNAME@projects-storage.eclipse.org:/home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE/"; then
+          echo "Error: Failed to upload files"
+          rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
+          exit 1
+        fi
         
-        echo "--- Upload complete ---"
+        echo "--- Verifying upload ---"
+        if ssh "$SSH_USERNAME@projects-storage.eclipse.org" "ls -la /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE/"; then
+          echo "--- Upload complete and verified ---"
+        else
+          echo "Warning: Could not verify upload, but transfer appeared successful"
+        fi
+        
+        # Cleanup temporary files
+        rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
