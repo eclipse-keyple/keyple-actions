@@ -27,8 +27,6 @@ on:
         required: true
       SSH_PASSPHRASE:
         required: true
-      SONAR_TOKEN:
-        required: true
       ORG_GITHUB_BOT_TOKEN:
         required: true
 
