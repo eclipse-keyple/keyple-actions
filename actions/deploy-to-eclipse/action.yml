@@ -117,7 +117,7 @@ runs:
         
         echo "--- Uploading to: $VERSION_TYPE ---"
         # Remote directory creation with error handling
-        if ! ssh "$SSH_USERNAME@projects-storage.eclipse.org" "rm -rf /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE && mkdir -p /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE"; then
+        if ! ssh "$SSH_USERNAME@projects-storage.eclipse.org" "mkdir -p /home/data/httpd/download.eclipse.org/keyple/$VERSION_TYPE"; then
           echo "Error: Failed to create remote directory"
           rm -f "$TEMP_KEY" "$EXPECT_SCRIPT"
           exit 1
