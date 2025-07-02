@@ -23,6 +23,7 @@ mkdir $version
 
 echo "Copy javadoc and uml files..."
 cp -rf ../build/docs/javadoc/* $version/
+cp -rf ../build/dokka/html/* $version/
 cp -rf ../src/main/uml/api_*.svg $version/
 
 # Find the latest stable version (first non-SNAPSHOT)
