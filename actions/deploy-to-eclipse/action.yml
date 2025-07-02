@@ -22,6 +22,7 @@ runs:
       run: |
         mkdir -p repository
         find . -path "*build/libs/*.jar" -exec cp {} repository/ \;
+        find . -path "*build/outputs/aar/*-release.aar" -exec cp {} repository/ \;
         echo "Artifacts found:"
         ls -l repository/
 
