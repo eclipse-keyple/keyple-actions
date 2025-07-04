@@ -11,10 +11,18 @@ on:
         required: false
         default: 'temurin'
         type: string
+      working-directory:
+        required: false
+        default: '.'
+        type: string
 
 jobs:
   reusable-build-and-test:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
 
     steps:
       - name: Checkout source code
