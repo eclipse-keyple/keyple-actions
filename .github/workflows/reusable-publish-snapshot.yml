@@ -3,6 +3,10 @@ name: Reusable - Publish Snapshot to Maven Central
 on:
   workflow_call:
     inputs:
+      runner:
+        required: false
+        default: 'ubuntu-latest'
+        type: string
       java-version:
         required: false
         default: '17'
@@ -21,7 +25,7 @@ on:
 
 jobs:
   reusable-publish-snapshot:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
 
     steps:
       - name: Checkout source code
