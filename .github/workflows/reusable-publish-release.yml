@@ -95,11 +95,14 @@ jobs:
         run: |
           set -euo pipefail
           AUTH=$(echo -n '${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}' | base64)
-          RESPONSE=$(curl -s -w "%{http_code}" -o response.json \
+          RESPONSE=$(curl -v -f --connect-timeout 30 --max-time 300 -w "%{http_code}" -o response.json \
             -X POST \
             -H "Authorization: Bearer $AUTH" \
             -H "Content-Type: application/json" \
-            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${{ inputs.namespace }}?publishing_type=automatic")
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${{ inputs.namespace }}?publishing_type=automatic") || {
+              echo "❌ curl failed (network error or no HTTP response)"
+              exit 1
+          }
           HTTP_CODE=$(tail -c 3 <<< "$RESPONSE")
           echo "HTTP code: $HTTP_CODE"
           cat response.json
