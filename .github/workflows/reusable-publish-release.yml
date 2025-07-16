@@ -93,10 +93,26 @@ jobs:
 
       - name: Trigger automatic upload to Maven Central
         run: |
-          curl -X POST \
-            -H "Authorization: Bearer $(echo -n '${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}' | base64)" \
+          set -euo pipefail
+          AUTH=$(echo -n '${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}' | base64)
+          RESPONSE=$(curl -s -w "%{http_code}" -o response.json \
+            -X POST \
+            -H "Authorization: Bearer $AUTH" \
             -H "Content-Type: application/json" \
-            https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${{ inputs.namespace }}?publishing_type=automatic
+            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${{ inputs.namespace }}?publishing_type=automatic")
+          HTTP_CODE=$(tail -c 3 <<< "$RESPONSE")
+          echo "HTTP code: $HTTP_CODE"
+          cat response.json
+          if [ "$HTTP_CODE" -ge 300 ]; then
+            echo "❌ HTTP error: $HTTP_CODE"
+            exit 1
+          fi
+          if jq -e '.error' response.json > /dev/null; then
+            echo "❌ API returned an error:"
+            jq '.error' response.json
+            exit 1
+          fi
+        shell: bash
 
       - name: Update documentation
         uses: eclipse-keyple/keyple-actions/actions/update-documentation@update-documentation-v1
