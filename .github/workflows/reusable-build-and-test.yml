@@ -42,7 +42,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Verify dependency licenses
-        uses: ./actions/dash-licenses/verify-licenses
+        uses: ./actions/dash-licenses
         with:
           java-version: '17'
           java-distribution: 'temurin'
