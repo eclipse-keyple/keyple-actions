@@ -32,6 +32,13 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'jeanpierrefortune/keyple.keyple-actions'
+          ref: ${{ github.ref }}
+          path: '.github/workflows/actions'
+
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
         with:
@@ -42,7 +49,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Verify dependency licenses
-        uses: ./actions/dash-licenses
+        uses: ./.github/workflows/actions/actions/dash-licenses
         with:
           java-version: '17'
           java-distribution: 'temurin'
