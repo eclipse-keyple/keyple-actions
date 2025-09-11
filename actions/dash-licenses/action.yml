@@ -1,5 +1,5 @@
 name: Verify Dependency Licenses
-description: Checks project dependencies for license compliance using Eclipse dash-licenses
+description: Checks project dependencies for license compliance using Eclipse dash-licenses.
 
 inputs:
   java-version:
@@ -17,6 +17,16 @@ runs:
       with:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
+
+    - name: Cache Dash Licenses
+      # Avoid 429 errors from dash-licenses tool
+      id: dash-cache
+      uses: actions/cache@v4
+      with:
+        path: ./.dash-cache
+        key: ${{ runner.os }}-dash-licenses-cache-${{ hashFiles('**/gradle.lockfile') }}
+        restore-keys: |
+          ${{ runner.os }}-dash-licenses-cache-
 
     - name: Make Gradle wrapper executable
       run: chmod +x ./gradlew
@@ -41,10 +51,11 @@ runs:
     - name: Run Eclipse dash-licenses check
       run: |
         echo "Running license check with Eclipse dash-licenses..."
-        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt -
+        # Utilisation de l'option de cache pour l'outil
+        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt --cd-cache-path ./.dash-cache/ -
       shell: bash
 
-    - name: "Archive dash artifacts"
+    - name: Archive dash artifacts
       if: always()
       uses: actions/upload-artifact@v4
       with:
