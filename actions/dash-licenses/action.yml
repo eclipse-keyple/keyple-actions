@@ -41,8 +41,14 @@ runs:
     - name: Run Eclipse dash-licenses check
       run: |
         echo "Running license check with Eclipse dash-licenses..."
-        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary summary.txt -
+        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt -
       shell: bash
+
+    - name: "Archive dash artifacts"
+      uses: actions/upload-artifact@v4
+      with:
+        name: Dash Report - Run ${{ github.run_number }}
+        path: dash-summary.txt
 
     - name: Clean up init script and tool
       if: always()
