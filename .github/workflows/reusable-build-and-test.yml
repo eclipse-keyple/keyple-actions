@@ -41,6 +41,12 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Verify dependency licenses
+        uses: ./actions/dash-licenses/verify-licenses
+        with:
+          java-version: '17'
+          java-distribution: 'temurin'
+
       - name: Build and test
         run: |
           echo "Building and testing project..."

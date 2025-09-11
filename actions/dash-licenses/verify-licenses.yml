@@ -1,0 +1,52 @@
+name: Verify Dependency Licenses
+description: Checks project dependencies for license compliance using Eclipse dash-licenses
+
+inputs:
+  java-version:
+    required: false
+    default: '17'
+  java-distribution:
+    required: false
+    default: 'temurin'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up JDK ${{ inputs.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java-version }}
+        distribution: ${{ inputs.java-distribution }}
+
+    - name: Make Gradle wrapper executable
+      run: chmod +x ./gradlew
+      shell: bash
+
+    - name: Create Gradle init script for dependency locking
+      run: |
+        mkdir -p ./.github/workflows/scripts
+        echo 'allprojects { dependencyLocking { lockAllConfigurations() } }' > ./.github/workflows/scripts/init.gradle.kts
+      shell: bash
+
+    - name: Generate gradle.lockfile
+      run: |
+        echo "Generating dependency lockfile..."
+        ./gradlew dependencies --write-locks --init-script ./.github/workflows/scripts/init.gradle.kts
+      shell: bash
+
+    - name: Download Eclipse dash-licenses tool
+      run: wget -O dash-licenses-tool.jar 'https://repo.eclipse.org/service/local/artifact/maven/redirect?r=dash-licenses&g=org.eclipse.dash&a=org.eclipse.dash.licenses&v=LATEST'
+      shell: bash
+
+    - name: Run Eclipse dash-licenses check
+      run: |
+        echo "Running license check with Eclipse dash-licenses..."
+        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary summary.txt -
+      shell: bash
+
+    - name: Clean up init script and tool
+      if: always()
+      run: |
+        rm -rf ./.github/workflows/scripts
+        rm -f dash-licenses-tool.jar
+      shell: bash
