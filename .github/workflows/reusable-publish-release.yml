@@ -13,6 +13,10 @@ on:
       java-distribution:
         default: 'temurin'
         type: string
+      check-version:
+        required: false
+        default: true
+        type: boolean
       update-documentation:
         required: false
         default: true
@@ -58,6 +62,7 @@ jobs:
           echo "project-version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check version
+        if: ${{ inputs.check-version }}
         run: |
           EXPECTED_PROJECT_VERSION="${{ github.event.release.tag_name }}-SNAPSHOT"
           ACTUAL_PROJECT_VERSION="${{ steps.metadata.outputs.project-version }}"
