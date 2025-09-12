@@ -18,10 +18,6 @@ runs:
         java-version: ${{ inputs.java-version }}
         distribution: ${{ inputs.java-distribution }}
 
-    - name: Make Gradle wrapper executable
-      run: chmod +x ./gradlew
-      shell: bash
-
     - name: Create Gradle init script for dependency locking
       run: |
         mkdir -p ./.github/workflows/scripts
