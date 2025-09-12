@@ -32,13 +32,6 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Checkout actions repository
-        uses: actions/checkout@v4
-        with:
-          repository: 'jeanpierrefortune/keyple.keyple-actions'
-          ref: ${{ github.ref }}
-          path: '.github/workflows/actions'
-
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
         with:
@@ -47,6 +40,13 @@ jobs:
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
+
+      - name: Checkout actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'eclipse-keyple/keyple-actions'
+          ref: ${{ github.ref }}
+          path: '.github/workflows/actions'
 
       - name: Verify dependency licenses
         uses: ./.github/workflows/actions/actions/dash-licenses
