@@ -8,6 +8,9 @@ inputs:
   java-distribution:
     required: false
     default: 'temurin'
+  working-directory:
+    required: false
+    default: '.'
 
 runs:
   using: "composite"
@@ -29,16 +32,19 @@ runs:
         echo "Generating dependency lockfile..."
         ./gradlew dependencies --write-locks --init-script ./.github/workflows/scripts/init.gradle.kts
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Download Eclipse dash-licenses tool
       run: wget -O dash-licenses-tool.jar 'https://repo.eclipse.org/service/local/artifact/maven/redirect?r=dash-licenses&g=org.eclipse.dash&a=org.eclipse.dash.licenses&v=LATEST'
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Run Eclipse dash-licenses check
       run: |
         echo "Running license check with Eclipse dash-licenses..."
         cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt -
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Archive dash artifacts
       if: always()
@@ -46,6 +52,7 @@ runs:
       with:
         name: Dash Report - Run ${{ github.run_number }}
         path: dash-summary.txt
+      working-directory: ${{ inputs.working-directory }}
 
     - name: Clean up init script and tool
       if: always()
@@ -53,3 +60,4 @@ runs:
         rm -rf ./.github/workflows/scripts
         rm -f dash-licenses-tool.jar
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
