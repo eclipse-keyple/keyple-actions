@@ -30,7 +30,7 @@ runs:
     - name: Generate gradle.lockfile
       run: |
         echo "Generating dependency lockfile..."
-        ${{ inputs.working-directory }}/gradlew dependencies --write-locks --init-script ${{ inputs.working-directory }}/.github/workflows/scripts/init.gradle.kts
+        ${{ inputs.working-directory }}/gradlew --project-dir ${{ inputs.working-directory }} dependencies --write-locks --init-script ${{ inputs.working-directory }}/.github/workflows/scripts/init.gradle.kts
       shell: bash
 
     - name: Download Eclipse dash-licenses tool
