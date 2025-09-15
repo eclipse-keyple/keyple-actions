@@ -44,18 +44,8 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: Checkout actions repository
-        uses: actions/checkout@v4
-        with:
-          repository: 'eclipse-keyple/keyple-actions'
-          ref: 'publish-snapshot-v1'
-          path: '.github/workflows/actions'
-
       - name: Verify dependency licenses
-        uses: ./.github/workflows/actions/actions/dash-licenses
-        with:
-          java-version: '17'
-          java-distribution: 'temurin'
+        uses: eclipse-keyple/keyple-actions/actions/dash-licenses@dash-licenses-v1
 
       - name: Extract project name and version
         id: metadata
