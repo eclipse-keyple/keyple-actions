@@ -23,24 +23,29 @@ runs:
 
     - name: Create Gradle init script for dependency locking
       run: |
-        mkdir -p ${{ inputs.working-directory }}/.github/workflows/scripts
-        echo 'allprojects { dependencyLocking { lockAllConfigurations() } }' > ${{ inputs.working-directory }}/.github/workflows/scripts/init.gradle.kts
+        pwd
+        cd ${{ inputs.working-directory }}
+        echo 'allprojects { dependencyLocking { lockAllConfigurations() } }' > init.gradle.kts
       shell: bash
 
     - name: Generate gradle.lockfile
       run: |
+        pwd
         echo "Generating dependency lockfile..."
-        ${{ inputs.working-directory }}/gradlew --project-dir ${{ inputs.working-directory }} dependencies --write-locks --init-script ${{ inputs.working-directory }}/.github/workflows/scripts/init.gradle.kts
+        gradlew  dependencies --write-locks --init-script init.gradle.kts
       shell: bash
 
     - name: Download Eclipse dash-licenses tool
-      run: wget -O ${{ inputs.working-directory }}/dash-licenses-tool.jar 'https://repo.eclipse.org/service/local/artifact/maven/redirect?r=dash-licenses&g=org.eclipse.dash&a=org.eclipse.dash.licenses&v=LATEST'
+      run: |
+        pwd 
+        wget -O dash-licenses-tool.jar 'https://repo.eclipse.org/service/local/artifact/maven/redirect?r=dash-licenses&g=org.eclipse.dash&a=org.eclipse.dash.licenses&v=LATEST'
       shell: bash
 
     - name: Run Eclipse dash-licenses check
       run: |
+        pwd 
         echo "Running license check with Eclipse dash-licenses..."
-        cat ${{ inputs.working-directory }}/gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar ${{ inputs.working-directory }}/dash-licenses-tool.jar -summary ${{ inputs.working-directory }}/dash-summary.txt -
+        cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt -
       shell: bash
 
     - name: Archive dash artifacts
@@ -48,11 +53,11 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: Dash Report - Run ${{ github.run_number }}
-        path: ${{ inputs.working-directory }}/dash-summary.txt
+        path: dash-summary.txt
 
     - name: Clean up init script and tool
       if: always()
       run: |
-        rm -rf ${{ inputs.working-directory }}/.github/workflows/scripts
-        rm -f ${{ inputs.working-directory }}/dash-licenses-tool.jar
+        rm -rf .github/workflows/scripts
+        rm -f dash-licenses-tool.jar
       shell: bash
