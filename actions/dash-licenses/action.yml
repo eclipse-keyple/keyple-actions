@@ -23,27 +23,26 @@ runs:
 
     - name: Create Gradle init script for dependency locking
       run: |
-        pwd
         cd ${{ inputs.working-directory }}
         echo 'allprojects { dependencyLocking { lockAllConfigurations() } }' > init.gradle.kts
       shell: bash
 
     - name: Generate gradle.lockfile
       run: |
-        pwd
+        cd ${{ inputs.working-directory }}
         echo "Generating dependency lockfile..."
         gradlew  dependencies --write-locks --init-script init.gradle.kts
       shell: bash
 
     - name: Download Eclipse dash-licenses tool
       run: |
-        pwd 
+        cd ${{ inputs.working-directory }}
         wget -O dash-licenses-tool.jar 'https://repo.eclipse.org/service/local/artifact/maven/redirect?r=dash-licenses&g=org.eclipse.dash&a=org.eclipse.dash.licenses&v=LATEST'
       shell: bash
 
     - name: Run Eclipse dash-licenses check
       run: |
-        pwd 
+        cd ${{ inputs.working-directory }}
         echo "Running license check with Eclipse dash-licenses..."
         cat gradle.lockfile | grep -Pv '^#' | grep -Pv '^empty' | grep -Poh '^[^=]+' | java -jar dash-licenses-tool.jar -summary dash-summary.txt -
       shell: bash
@@ -53,11 +52,11 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: Dash Report - Run ${{ github.run_number }}
-        path: dash-summary.txt
+        path: ${{ inputs.working-directory }}/dash-summary.txt
 
     - name: Clean up init script and tool
       if: always()
       run: |
-        rm -rf .github/workflows/scripts
-        rm -f dash-licenses-tool.jar
+        cd ${{ inputs.working-directory }}
+        rm -f init.gradle.kts dash-licenses-tool.jar
       shell: bash
