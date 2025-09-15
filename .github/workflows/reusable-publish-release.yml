@@ -57,7 +57,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'eclipse-keyple/keyple-actions'
-          ref: ${{ github.ref }}
+          ref: 'publish-release-v1'
           path: '.github/workflows/actions'
 
       - name: Verify dependency licenses
