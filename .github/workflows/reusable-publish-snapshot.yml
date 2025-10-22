@@ -19,6 +19,10 @@ on:
         required: false
         default: true
         type: boolean
+      working-directory:
+        required: false
+        default: '.'
+        type: string
     secrets:
       CENTRAL_SONATYPE_TOKEN_USERNAME:
         required: true

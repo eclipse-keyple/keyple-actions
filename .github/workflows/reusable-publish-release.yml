@@ -24,6 +24,10 @@ on:
       namespace:
         default: 'org.eclipse.keyple'
         type: string
+      working-directory:
+        required: false
+        default: '.'
+        type: string
     secrets:
       CENTRAL_SONATYPE_TOKEN_USERNAME:
         required: true
