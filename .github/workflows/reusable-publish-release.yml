@@ -112,13 +112,12 @@ jobs:
           ./gradlew build publish
 
       - name: Trigger automatic upload to Maven Central
-        env:
-          SONATYPE_AUTH_TOKEN: $(echo -n "${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}" | base64)
         run: |
           echo "Triggering upload to Maven Central..."
+          encoded_auth=$(echo -n "${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}:${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}" | base64)
           response_file=$(mktemp)
           response_code=$(curl -v --connect-timeout 30 --max-time 300 -X POST \
-            -H "Authorization: Bearer $SONATYPE_AUTH_TOKEN" \
+            -H "Authorization: Bearer $encoded_auth" \
             -H "Content-Type: application/json" \
             -o "$response_file" \
             -w "%{http_code}" \
