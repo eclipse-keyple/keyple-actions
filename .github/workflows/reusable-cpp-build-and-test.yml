@@ -1,10 +1,15 @@
-name: Reusable Build and Test
+name: Reusable C++ Build and Test
 
 on:
   workflow_call:
     inputs:
       test_executable_name:
         description: 'The name of the test executable'
+        required: false
+        type: string
+        default: ''
+      extra_linux_deps:
+        description: 'Extra dependencies to install on Linux'
         required: false
         type: string
         default: ''
@@ -34,7 +39,7 @@ jobs:
         if: ${{ matrix.env.runner == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake cppcheck clang-format clang-tidy gcc pre-commit
+          sudo apt-get install -y clang cmake cppcheck clang-format clang-tidy gcc pre-commit ${{ inputs.extra_linux_deps }}
 
       - name: Install macOS reqs
         if: ${{ matrix.env.runner == 'macos-latest' }}
