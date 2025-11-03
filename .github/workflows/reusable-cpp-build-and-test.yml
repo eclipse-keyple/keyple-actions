@@ -57,9 +57,10 @@ jobs:
           TOOLCHAIN_FILE: ${{ matrix.env.toolchain }}
         run: |
           if [ -n "$CMAKE_GENERATOR" ]; then
-              GENERATOR_ARG="-G \"$CMAKE_GENERATOR\""
+              cmake -G "$CMAKE_GENERATOR" -B build -S . -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE"
+          else
+              cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE"
           fi
-          cmake $GENERATOR_ARG -B build -S . -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE
           cmake --build build -j8
 
       - name: Run Linux/macOS tests
