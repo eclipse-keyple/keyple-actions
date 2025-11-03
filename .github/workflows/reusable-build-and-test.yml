@@ -47,6 +47,6 @@ jobs:
           ./gradlew build
 
       - name: Verify dependency licenses
-        uses: eclipse-keyple/keyple-actions/actions/dash-licenses@dash-licenses-v1
+        uses: eclipse-keyple/keyple-actions/actions/dash-licenses@dash-licenses-v1  # NOSONAR - Same organization, trusted source
         with:
           working-directory: ${{ inputs.working-directory }}
