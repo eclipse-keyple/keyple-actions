@@ -55,7 +55,7 @@ on:
 
 jobs:
   publish:
-    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
     secrets:
       CENTRAL_SONATYPE_TOKEN_USERNAME: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
       CENTRAL_SONATYPE_TOKEN_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
@@ -70,7 +70,7 @@ on:
 
 jobs:
   build:
-    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
 ```
 
 ```yaml
@@ -83,7 +83,7 @@ on:
 
 jobs:
   build:
-    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-cpp-build-and-test.yml@main
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-cpp-build-and-test.yml@main
     with:
       test_executable_name: 'my-test-app'  # Optional: name of the test executable to run
       extra_linux_deps: 'libssl-dev'       # Optional: additional Linux dependencies
