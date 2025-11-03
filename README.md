@@ -13,12 +13,14 @@ These workflows can be invoked in any org repository via `workflow_call`.
 | Name                           | Description                                                                  | Path                                                           |
 |--------------------------------|------------------------------------------------------------------------------|----------------------------------------------------------------|
 | Build and Test                 | Build and test Java/Gradle projects with license verification               | `.github/workflows/reusable-build-and-test.yml`               |
+| C++ Build and Test             | Build and test C++ projects across Linux, macOS, and Windows                 | `.github/workflows/reusable-cpp-build-and-test.yml`           |
 | Publish Snapshot               | Publish snapshot versions to Maven Central                                   | `.github/workflows/reusable-publish-snapshot.yml`             |
 | Publish Release                | Publish official releases to Maven Central with GPG signing                  | `.github/workflows/reusable-publish-release.yml`              |
 | Publish Doxygen                | Generate and publish Doxygen documentation (C++) to `doc` branch             | `.github/workflows/reusable-publish-doxygen.yml`              |
 
 **Workflow Logic**:
 - **Build and Test**: Sets up Java environment, runs Gradle build, and verifies dependency license compliance.
+- **C++ Build and Test**: Builds C++ projects using CMake across three platforms (Linux with GCC, macOS with Clang, Windows with Clang/Visual Studio 2022). Automatically installs required dependencies (clang, cmake, cppcheck, clang-format, clang-tidy, gcc, pre-commit) and supports optional extra Linux dependencies. Runs tests on Linux/macOS if a test executable name is provided.
 - **Publish Snapshot**: Validates version is not already released, builds the project, publishes to Maven Central Snapshots, and updates documentation.
 - **Publish Release**: Verifies version consistency, signs artifacts with GPG, publishes to Maven Central, triggers automatic upload, and updates documentation.
 - **Publish Doxygen**: Extracts repository metadata and invokes the `doxygen` action to generate and deploy documentation.
@@ -53,7 +55,7 @@ on:
 
 jobs:
   publish:
-    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
     secrets:
       CENTRAL_SONATYPE_TOKEN_USERNAME: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
       CENTRAL_SONATYPE_TOKEN_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
@@ -68,7 +70,23 @@ on:
 
 jobs:
   build:
-    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
+```
+
+```yaml
+name: C++ Build and Test
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-cpp-build-and-test.yml@main
+    with:
+      test_executable_name: 'my-test-app'  # Optional: name of the test executable to run
+      extra_linux_deps: 'libssl-dev'       # Optional: additional Linux dependencies
 ```
 
 ---
