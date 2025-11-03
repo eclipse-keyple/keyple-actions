@@ -53,7 +53,7 @@ on:
 
 jobs:
   publish:
-    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
+    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-publish-snapshot.yml@publish-snapshot-v1
     secrets:
       CENTRAL_SONATYPE_TOKEN_USERNAME: ${{ secrets.CENTRAL_SONATYPE_TOKEN_USERNAME }}
       CENTRAL_SONATYPE_TOKEN_PASSWORD: ${{ secrets.CENTRAL_SONATYPE_TOKEN_PASSWORD }}
@@ -68,7 +68,7 @@ on:
 
 jobs:
   build:
-    uses: eclipse-keyple/keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
+    uses: jeanpierrefortune/keyple.keyple-actions/.github/workflows/reusable-build-and-test.yml@build-and-test-v1
 ```
 
 ---

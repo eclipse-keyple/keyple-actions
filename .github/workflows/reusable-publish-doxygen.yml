@@ -28,7 +28,7 @@ jobs:
           echo "name=$REPO_NAME" >> $GITHUB_OUTPUT
 
       - name: Generate and publish Doxygen documentation
-        uses: eclipse-keyple/keyple-actions/actions/doxygen@doxygen-v1
+        uses: jeanpierrefortune/keyple.keyple-actions/actions/doxygen@doxygen-v1
         with:
           version: ${{ inputs.version }}
           repo-name: ${{ steps.repo.outputs.name }}

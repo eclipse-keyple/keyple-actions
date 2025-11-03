@@ -49,7 +49,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Verify dependency licenses
-        uses: eclipse-keyple/keyple-actions/actions/dash-licenses@dash-licenses-v1
+        uses: jeanpierrefortune/keyple.keyple-actions/actions/dash-licenses@dash-licenses-v1
         with:
           working-directory: ${{ inputs.working-directory }}
 
@@ -82,7 +82,7 @@ jobs:
 
       - name: Update documentation
         if: ${{ inputs.update-documentation }}
-        uses: eclipse-keyple/keyple-actions/actions/update-documentation@update-documentation-v1
+        uses: jeanpierrefortune/keyple.keyple-actions/actions/update-documentation@update-documentation-v1
         with:
           project-name: ${{ steps.metadata.outputs.project-name }}
           project-version: ${{ steps.metadata.outputs.project-version }}
