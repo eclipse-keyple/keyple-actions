@@ -37,9 +37,11 @@ jobs:
 
       - name: Install Linux reqs
         if: ${{ matrix.env.runner == 'ubuntu-latest' }}
+        env:
+          EXTRA_DEPS: ${{ inputs.extra_linux_deps }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake cppcheck clang-format clang-tidy gcc pre-commit ${{ inputs.extra_linux_deps }}
+          sudo apt-get install -y clang cmake cppcheck clang-format clang-tidy gcc pre-commit $EXTRA_DEPS
 
       - name: Install macOS reqs
         if: ${{ matrix.env.runner == 'macos-latest' }}
@@ -47,11 +49,16 @@ jobs:
           brew install llvm cmake cppcheck clang-format gcc pre-commit
 
       - name: Build
+        env:
+          CMAKE_GENERATOR: ${{ matrix.env.generator }}
+          TOOLCHAIN_FILE: ${{ matrix.env.toolchain }}
         run: |
-          cmake ${{ matrix.env.generator }} -B build -S . -DCMAKE_TOOLCHAIN_FILE=${{ matrix.env.toolchain }}
+          cmake $CMAKE_GENERATOR -B build -S . -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE
           cmake --build build -j8
 
       - name: Run Linux/macOS tests
         if: ${{ (matrix.env.runner == 'ubuntu-latest' || matrix.env.runner == 'macos-latest') && inputs.test_executable_name != '' }}
+        env:
+          TEST_EXECUTABLE: ${{ inputs.test_executable_name }}
         run: |
-          ./build/bin/${{ inputs.test_executable_name }}
+          ./build/bin/$TEST_EXECUTABLE
