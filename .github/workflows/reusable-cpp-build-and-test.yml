@@ -27,7 +27,7 @@ jobs:
             generator: ""
           - toolchain: "\"toolchain/clang-windows.cmake\""
             runner: windows-latest
-            generator: "-G \"Visual Studio 17 2022\""
+            generator: "Visual Studio 17 2022"
 
     runs-on: ${{ matrix.env.runner }}
 
@@ -53,7 +53,10 @@ jobs:
           CMAKE_GENERATOR: ${{ matrix.env.generator }}
           TOOLCHAIN_FILE: ${{ matrix.env.toolchain }}
         run: |
-          cmake $CMAKE_GENERATOR -B build -S . -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE
+          if [ -n "$CMAKE_GENERATOR_NAME" ]; then
+              GENERATOR_ARG="-G \"$CMAKE_GENERATOR_NAME\""
+          fi
+          cmake $GENERATOR_ARG -B build -S . -DCMAKE_TOOLCHAIN_FILE=$TOOLCHAIN_FILE
           cmake --build build -j8
 
       - name: Run Linux/macOS tests
