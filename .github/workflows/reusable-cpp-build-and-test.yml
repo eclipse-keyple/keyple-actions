@@ -20,7 +20,7 @@ jobs:
           - toolchain: "toolchain/clang-macos.cmake"
             runner: macos-latest
             generator: ""
-          - toolchain: "toolchain/clang-windows.cmake"
+          - toolchain: "\"toolchain/clang-windows.cmake\""
             runner: windows-latest
             generator: "-G \"Visual Studio 17 2022\""
 
