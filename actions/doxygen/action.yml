@@ -49,6 +49,16 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
       run: python "$ACTION_PATH/scripts/check_version.py" "$VERSION"
 
+    - name: Copy Doxyfile and logo.svg from action
+      shell: bash
+      env:
+        REPO_NAME: ${{ inputs.repo-name }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        echo "Copying Doxyfile and logo.svg from $ACTION_PATH/doxygen/ to /home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/"
+        mkdir -p "/home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/"
+        cp -r "$ACTION_PATH/doxygen/." "/home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/"
+
     - name: Patch Doxyfile
       if: always()
       shell: bash
@@ -57,15 +67,6 @@ runs:
         VERSION: ${{ inputs.version }}
         ACTION_PATH: ${{ github.action_path }}
       run: python "$ACTION_PATH/scripts/patch_doxyfile.py" "/home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/Doxyfile" "$VERSION"
-
-    - name: Copy Doxyfile and logo.svg
-      shell: bash
-      env:
-        REPO_NAME: ${{ inputs.repo-name }}
-        ACTION_PATH: ${{ github.action_path }}
-      run: |
-        echo "Copying logo.svg from $ACTION_PATH/doxygen/ to /home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/"
-        cp -r "$ACTION_PATH/doxygen/." "/home/runner/work/$REPO_NAME/$REPO_NAME/.github/doxygen/"
 
     - name: Generate documentation
       uses: mattnotmitt/doxygen-action@v1.9.2

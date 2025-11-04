@@ -10,13 +10,13 @@ This repository contains all **GitHub Actions** and **reusable workflows** for t
 
 These workflows can be invoked in any org repository via `workflow_call`.
 
-| Name                           | Description                                                                  | Path                                                           |
-|--------------------------------|------------------------------------------------------------------------------|----------------------------------------------------------------|
-| Build and Test                 | Build and test Java/Gradle projects with license verification               | `.github/workflows/reusable-build-and-test.yml`               |
-| C++ Build and Test             | Build and test C++ projects across Linux, macOS, and Windows                 | `.github/workflows/reusable-cpp-build-and-test.yml`           |
-| Publish Snapshot               | Publish snapshot versions to Maven Central                                   | `.github/workflows/reusable-publish-snapshot.yml`             |
-| Publish Release                | Publish official releases to Maven Central with GPG signing                  | `.github/workflows/reusable-publish-release.yml`              |
-| Publish Doxygen                | Generate and publish Doxygen documentation (C++) to `doc` branch             | `.github/workflows/reusable-publish-doxygen.yml`              |
+| Name               | Description                                                      | Path                                                |
+|--------------------|------------------------------------------------------------------|-----------------------------------------------------|
+| Build and Test     | Build and test Java/Gradle projects with license verification    | `.github/workflows/reusable-build-and-test.yml`     |
+| C++ Build and Test | Build and test C++ projects across Linux, macOS, and Windows     | `.github/workflows/reusable-cpp-build-and-test.yml` |
+| Publish Snapshot   | Publish snapshot versions to Maven Central                       | `.github/workflows/reusable-publish-snapshot.yml`   |
+| Publish Release    | Publish official releases to Maven Central with GPG signing      | `.github/workflows/reusable-publish-release.yml`    |
+| Publish Doxygen    | Generate and publish Doxygen documentation (C++) to `doc` branch | `.github/workflows/reusable-publish-doxygen.yml`    |
 
 **Workflow Logic**:
 - **Build and Test**: Sets up Java environment, runs Gradle build, and verifies dependency license compliance.
@@ -31,11 +31,11 @@ These workflows can be invoked in any org repository via `workflow_call`.
 
 These actions live under `actions/` and encapsulate reusable complex workflows.
 
-| Name                  | Description                                                                | Path                                        | Status        |
-|-----------------------|----------------------------------------------------------------------------|---------------------------------------------|---------------|
-| doxygen               | Generate and publish Doxygen documentation (C++ API)                       | `actions/doxygen/action.yml`                | **Active**    |
-| dash-licenses         | Verify dependency license compliance using Eclipse Dash                    | `actions/dash-licenses/action.yml`          | **Active**    |
-| update-documentation  | Generate and push Javadoc to `doc` branch                                  | `actions/update-documentation/action.yml`   | **Active**    |
+| Name                 | Description                                             | Path                                      | Status     |
+|----------------------|---------------------------------------------------------|-------------------------------------------|------------|
+| doxygen              | Generate and publish Doxygen documentation (C++ API)    | `actions/doxygen/action.yml`              | **Active** |
+| dash-licenses        | Verify dependency license compliance using Eclipse Dash | `actions/dash-licenses/action.yml`        | **Active** |
+| update-documentation | Generate and push Javadoc to `doc` branch               | `actions/update-documentation/action.yml` | **Active** |
 
 **Composite Action Logic**:
 - **doxygen**: Installs Python and dependencies, validates and patches Doxyfile, generates documentation via Doxygen, prepares versioned directory structure, deploys to `doc` branch, and triggers centralized documentation update.
