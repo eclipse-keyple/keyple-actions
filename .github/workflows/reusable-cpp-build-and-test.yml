@@ -69,4 +69,4 @@ jobs:
         env:
           TEST_EXECUTABLE: ${{ inputs.test_executable_name }}
         run: |
-          ./build/bin/$TEST_EXECUTABLE
+          ./$TEST_EXECUTABLE
