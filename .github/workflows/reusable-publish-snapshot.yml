@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
 
       - name: Set up JDK ${{ inputs.java-version }}
         uses: actions/setup-java@v4
@@ -62,8 +64,9 @@ jobs:
           echo "project-version=$PROJECT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if this version is already released
+        env:
+          PROJECT_VERSION: ${{ steps.metadata.outputs.project-version }}
         run: |
-          PROJECT_VERSION=${{ steps.metadata.outputs.project-version }}
           RELEASE_VERSION=${PROJECT_VERSION%-SNAPSHOT}
           
           if git tag -l | grep -q "^${RELEASE_VERSION}$"; then
